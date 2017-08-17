@@ -10,14 +10,12 @@ import android.widget.TextView;
 
 public class Details extends AppCompatActivity {
     int position;
-    public static final String robertisDumb = "robert";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_details);
         Intent i = getIntent();
-        String p = i.getStringExtra(MountainList.robertIsStupid);
-        position = Integer.parseInt(p);
+        position = i.getIntExtra("mountainList", 0);
         getSupportActionBar().setTitle(MountainList.mountainList.get(position).name);
         widgetInit();
     }
@@ -48,8 +46,7 @@ public class Details extends AppCompatActivity {
 
     private void activityChange(View v) {
         Intent i = new Intent(this ,HikeTracker.class);
-        String s = Integer.toString(position);
-        i.putExtra(robertisDumb, s);
+        i.putExtra("details", position);
         startActivity(i);
     }
 }

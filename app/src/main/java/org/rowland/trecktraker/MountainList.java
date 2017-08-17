@@ -86,9 +86,8 @@ public class MountainList extends AppCompatActivity {
     private void mountainClicked(View v) {
 
         Intent i = new Intent(this ,Details.class);
-        //Mountain m = mountainList.get(v.getId());
         String s = Integer.toString(v.getId());
-        i.putExtra(robertIsStupid, s);
+        i.putExtra("mountainList", v.getId());
         startActivity(i);
     }
     public void playServices() {
@@ -102,7 +101,7 @@ public class MountainList extends AppCompatActivity {
             d.show();
         }
         else {
-            Toast.makeText( this, "Fuck Play Sercives", Toast.LENGTH_LONG).show();
+            Toast.makeText( this, "Play Sercives dont work", Toast.LENGTH_LONG).show();
         }
     }
 

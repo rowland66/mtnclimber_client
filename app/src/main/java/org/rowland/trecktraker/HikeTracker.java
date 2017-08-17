@@ -52,10 +52,9 @@ public class HikeTracker extends FragmentActivity implements OnMapReadyCallback 
     double averageTotal;
     int numberofValues;
     double totalDistance;
-    Location summit = new Location("summit");
-    Location lastLocation = new Location("lastLocation");
+    LatLng summit;
+    Location lastLocation;
     Button checkIn;
-    static final String robertIsNotIntellegent = "roberto";
     boolean updateInfo = true;
 
 
@@ -75,15 +74,12 @@ public class HikeTracker extends FragmentActivity implements OnMapReadyCallback 
             };
         };
         Intent i = getIntent();
-        String p = i.getStringExtra(Details.robertisDumb);
-        position = Integer.parseInt(p);
+        position = i.getIntExtra("details", 0);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-        summit.setTime(new Date().getTime());
-        summit.setLongitude(MountainList.mountainList.get(position).Long);
-        summit.setLatitude(MountainList.mountainList.get(position).Lat);
+        summit = new LatLng(MountainList.mountainList.get(position).Long, MountainList.mountainList.get(position).Lat);
         distanceTravelled = (TextView) findViewById(R.id.distanceTraelled);
         distanceLeft = (TextView) findViewById(R.id.distanceToSummit);
         currentElevation = (TextView) findViewById(R.id.currentElevation);
@@ -121,7 +117,6 @@ public class HikeTracker extends FragmentActivity implements OnMapReadyCallback 
         Color.argb(50,0,100,255);
         LatLng test = new LatLng(4.6,4.5);
         // Add a marker in Sydney and move the camera
-        LatLng summit = new LatLng(MountainList.mountainList.get(position).Long, MountainList.mountainList.get(position).Lat);
         mMap.addMarker(new MarkerOptions().position(summit)
                 .title("Summit of " + MountainList.mountainList.get(position).name)
                 .snippet(Integer.toString(MountainList.mountainList.get(position).height) + "ft"));
@@ -151,40 +146,38 @@ public class HikeTracker extends FragmentActivity implements OnMapReadyCallback 
         mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, null);
     }
     private void onLocationChange(Location l) {
+        float[] result = new float[1];
         float altitude;
         double distanceSummit;
+        if (lastLocation == null) {
+            lastLocation = l;
+        }
         if (l.distanceTo(lastLocation) > lastLocation.getAccuracy() && l.distanceTo(lastLocation) < 500 || updateInfo) {
             LatLng a = new LatLng(l.getLatitude(), l.getLongitude());
             points.add(a);
             path.setPoints(points);
             drawPolyline = true;
             averageTotal = averageTotal + (l.getSpeed() / .44704f);
-            distanceSummit = (l.distanceTo(summit)) / 1609.344f;
-            if (numberofValues > 0) {
+            Location.distanceBetween(l.getLatitude(), l.getLongitude(), summit.latitude, summit.longitude, result);
+            distanceSummit = result[0] / 1609.344f;
+            distanceSummit = (double)Math.round(distanceSummit * 100d) / 100d;
+
+            currentElevation.setText("Elevation " + (l.getAltitude() * 3.2808) + "ft");
                 totalDistance = totalDistance + (lastLocation.distanceTo(l) / 1609.344f);
-                currentElevation.setText("Elevation " + (l.getAltitude() * 3.2808) + "ft");
+
                 distanceLeft.setText(Double.toString(distanceSummit));
                 if (Double.isNaN(averageTotal / numberofValues)) {
                     averageSpeed.setText("Average 0.0 mph");
-                }
-                else {
+                }else {
                     averageSpeed.setText("Average " + (averageTotal / numberofValues) + " mph");
                 }
                 distanceTravelled.setText("You have  gone " + totalDistance + "miles");
-                if (l.distanceTo(summit) < 30 + l.getAccuracy()) {
+                if (distanceSummit < 30 + l.getAccuracy()) {
                     onPause(true);
                 }
-            }
+
             lastLocation = l;
             updateInfo = false;
-        }
-        else {
-            if (Double.isNaN(averageTotal / numberofValues)) {
-                averageSpeed.setText("Average 0.0 mph");
-            }
-            else {
-                averageSpeed.setText("Average " + (averageTotal / numberofValues) + " mph");
-            }
         }
         numberofValues++;
 
@@ -207,8 +200,8 @@ public class HikeTracker extends FragmentActivity implements OnMapReadyCallback 
     }
     private void activityChanger() {
         Intent i = new Intent(this ,AtSummitData.class);
-        String s = Integer.toString(position);
-        i.putExtra(robertIsNotIntellegent, s);
+
+        i.putExtra("HikeTracker", position);
         startActivity(i);
     }
 
